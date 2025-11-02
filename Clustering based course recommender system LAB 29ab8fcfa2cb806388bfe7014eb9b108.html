@@ -1,0 +1,849 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Clustering based course recommender system LAB</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="29ab8fcf-a2cb-8063-88bf-e7014eb9b108" class="page sans"><header><h1 class="page-title">Clustering based course recommender system LAB</h1><p class="page-description"></p></header><div class="page-body"><p id="29ab8fcf-a2cb-80c4-82db-c9c2c7be4cdf" class="">Previously, we have generated user profile vectors based on course ratings and genres.</p><p id="29ab8fcf-a2cb-80a3-84d7-ed05352c2510" class="">A user profile vector may look like a row vector in the following matrix, for example, we can see the Database column for user2 has a value 1 which means user2 is very interesting in courses related to the databases. With the user profile vectors generated, we can also easily compute the similarity among users based on their shared interests.</p><p id="29ab8fcf-a2cb-8018-8cf9-cd98a945f79f" class="">
+</p><figure id="29ab8fcf-a2cb-8010-b090-d7e9be1ad61a" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.46.11_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.46.11_AM.png"/></a></figure><p id="29ab8fcf-a2cb-805d-88c8-ece46f541d93" class="">Furthermore, we could perform clustering algorithms such as K-means or DBSCAN to group users with similar learning interests. For example, in the below user clusters, we have user clusters whom have learned courses related to machine learning, cloud computing, databases, and web development, etc.</p><figure id="29ab8fcf-a2cb-80c9-85ee-da93b2f968ed" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.46.33_AM.png"><img style="width:553.984375px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.46.33_AM.png"/></a></figure><p id="29ab8fcf-a2cb-8040-8c11-c8d8dd0211fd" class="">For each user group, we can come up with a list of popular courses. For example, for the machine learning user cluster/learning group, we can count the most frequently enrolled courses, which are very likely to be the most popular and good machine learning courses because they are enrolled by many users who are interested in machine learning.</p><p id="29ab8fcf-a2cb-802d-9b21-e46f059e87ac" class="">If we know a user belongs to the machine learning group, we may recommend the most enrolled courses to them and it is very likely the user will be interested in them.</p><p id="29ab8fcf-a2cb-8008-82d0-def415932d03" class="">Next in this lab, you will be implementing some clustering-based recommender system algorithms.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-801b-9b71-d23fae13f2b5" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">%pip install scikit-learn
+%pip install seaborn 
+%pip install pandas
+%pip install matplotlib</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-800d-83f2-cf134c69afe6" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import seaborn as sns
+import pandas as pd 
+import numpy as np 
+import matplotlib.pyplot as plt 
+
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA 
+
+%matplotlib inline </code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8014-bfcc-ea0828449454" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">rs = 123 </code></pre><p id="29ab8fcf-a2cb-80a6-ba8c-f9c6fb700e55" class=""><strong>Load the user profile dataset</strong></p><p id="29ab8fcf-a2cb-8067-a518-ca7ab519e2f4" class="">Let&#x27;s first load the original user profile feature vectors:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80a2-ab64-dffd20cf1b44" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import pandas as pd 
+
+user_profile_url = &quot;&quot;https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-ML321EN-SkillsNetwork/labs/datasets/user_profile.csv&quot;
+
+user_profile_df = pd.read_csv(user_profile_url)
+user_profile_df.head()</code></pre><figure id="29ab8fcf-a2cb-8052-ad62-d7cdb3dbb2ae" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.51.57_AM.png"><img style="width:553.9765625px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.51.57_AM.png"/></a></figure><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-800b-ad73-fbb6f25b2b93" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">user_profile_df.shape</code></pre><figure id="29ab8fcf-a2cb-80cf-9d57-f9f69aa4a7df" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.52.13_AM.png"><img style="width:318px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.52.13_AM.png"/></a></figure><p id="29ab8fcf-a2cb-805a-8dec-f2faf519c67b" class="">we can then list the feature names, they are the user interested topics (course genres):</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-800a-b369-faefb1d35afb" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">feature_names = list(user_profile_df.columns[1:])
+feature_names </code></pre><figure id="29ab8fcf-a2cb-8097-ad0a-e7b6b5c21614" class="image" style="text-align:left"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.53.05_AM.png"><img style="width:432px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.53.05_AM.png"/></a></figure><p id="29ab8fcf-a2cb-80ea-8486-e3c7deb90a90" class="">As we can see from the user profile dataset, we have about 33K unique users with interests in areas like <code>Database</code>, <code>Python</code>, <code>CloudComputing</code>, etc. Then, let&#x27;s check the summary statistics for each feature.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8088-96a7-e9b8306653fa" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">user_profile_df.describe()</code></pre><figure id="29ab8fcf-a2cb-8059-bca4-c7a6ee0e7ef2" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.53.50_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.53.50_AM.png"/></a></figure><p id="29ab8fcf-a2cb-80ad-94f3-dcf04c1f2a59" class="">The original user profile feature vector is not normalized, which may cause issues when we perform clustering and Principal component analysis (PCA), therefor we standardize the data.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80e1-8c17-ea0001d008dc" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">scaler = StandardScaler()
+
+user_profile_df[feature_names] = scaler.fit_transform(user_profile_df[feature_names])
+
+print&quot; mean {} and standard deviation {}&quot;.format(user_profile_df[feature_names].mean(), user_profile_df[feature_names].</code></pre><figure id="29ab8fcf-a2cb-80b9-ac26-e10b51405a5c" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.55.49_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.55.49_AM.png"/></a></figure><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80f2-89f3-d3e914f4dce7" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">user_profile_df.describe()</code></pre><figure id="29ab8fcf-a2cb-80eb-ba01-cbcab2874d81" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.56.14_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.56.14_AM.png"/></a></figure><p id="29ab8fcf-a2cb-80fe-886d-ea91caf1ab93" class="">The normalized user profile features are:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80fa-b5dc-c657dd630748" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">features = user_prifle_df.loc[:, user_profile_df.columns != &#x27;user&#x27;]
+features</code></pre><figure id="29ab8fcf-a2cb-8042-9ab9-f61fbac71689" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.56.54_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.56.54_AM.png"/></a></figure><p id="29ab8fcf-a2cb-8068-90ce-ffb588868b9c" class="">we can also save the user ids for later recommendation tasks:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8074-8e44-d174f8ed3e96" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">user_ids = user_profile_df.loc[:, user_profile_df.columns == &#x27;user&#x27;]
+user_ids</code></pre><figure id="29ab8fcf-a2cb-80ec-9054-f6e8e972d0e5" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.57.36_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_10.57.36_AM.png"/></a></figure><p id="29ab8fcf-a2cb-8085-9ef0-dc844cb0f335" class="">
+</p><p id="29ab8fcf-a2cb-8073-a627-dc31e85097de" class="">
+</p><h1 id="29ab8fcf-a2cb-8052-a357-e596748273ea" class=""><strong>TASK: Perform K-means clustering algorithm on the user profile feature vectors</strong></h1><p id="29ab8fcf-a2cb-8097-b452-d9a98378153c" class="">With the user profile dataset ready, you need to use the <code>KMeans</code> class provided by scikit-learn library to perform clustering on the user profile feature vectors.</p><p id="29ab8fcf-a2cb-8066-8802-f36dc3547288" class="">For <code>KMeans</code> algorithm, one important hyperparameter is the number of clusters <code>n_cluster</code>, and a good way to find the optimized <code>n_cluster</code> is using to grid search a list of candidates and find the one with the best or optimized clustering evaluation metrics such as minimal <code>sum of squared distance</code>:</p><p id="29ab8fcf-a2cb-8039-924c-d8a59a0c83c9" class=""><em>TODO: grid search the optimized n_cluster for KMeans() model</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80b4-b12c-ea2eacdb8f75" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">from sklearn.cluster import KMeans 
+
+inertia = []
+list_num_clusters = list(range(1,30))
+for num_clusters in list_num_clusters:
+    km = KMeans(n_clusters = num_clusters, random_state= rs)
+    km.fit(features)
+    inertia.append(km.inertia_)
+
+
+# Find an optimized number of neighors k from a candidate list such as list_k = list(range(1, 30))
+plt.plot(list_num_clusters,inertia)
+plt.scatter(list_num_clusters, inertia)
+plt.xlabel(&#x27;Number of clusters&#x27;)
+plt.ylabel(&#x27;Inertia&#x27;);</code></pre><figure id="29ab8fcf-a2cb-808c-8aae-dba58d5aafa6" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.11.16_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.11.16_AM.png"/></a></figure><p id="29ab8fcf-a2cb-804b-b8d4-cb4ca880725b" class="">From the elbow plot, you should visualy identify the point where the metric starting to be flatten, which indicates the optimized number of clusters.</p><p id="29ab8fcf-a2cb-80a0-8999-d5176ae9f021" class="">Once you have identified the best number of clusters, you can apply <code>KMeans()</code> again to generate cluster label for all users.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80a0-a394-fb088cdec3b7" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">cluster_labels = [None] * len(user_ids)</code></pre><p id="29ab8fcf-a2cb-8084-9b72-d5fd32bf1c24" class=""><em>TODO: Apply KMeans() on the features with optimized n_cluster parameter after model fitting, you can find output cluster labels in </em><em><code>model.labels_</code></em><em> attribute</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-802c-99db-d1303a02e408" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">k = 30
+model = KMeans(n_clusters=k, random_state=rs).fit(features)
+cluster_labels = model.labels_
+cluster_labels</code></pre><figure id="29ab8fcf-a2cb-80e0-bb6f-c65f1394c0ad" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.12.27_AM.png"><img style="width:553.96875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.12.27_AM.png"/></a></figure><p id="29ab8fcf-a2cb-8050-887f-d60c33a6dd01" class="">The cluster labels you generated is a list of integers indicating cluster indices. You may use the following utility method to combine the cluster labels and user ids to a dataframe, so that you know which cluster a user belongs:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80ba-bf70-cfcd692076c6" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">def combine_cluster_labels (user_ids, labels):
+	#convert labels to a DataFrame
+	labels_df = pd.DataFrame(labels)
+	#merge user_ids DataFrame with lables DataFrame based on index
+	cluster_df = pd.merge(user_ids, labels_df, left_index = True, right_index = True) 
+	#rename columns to &#x27;user&#x27; and &#x27;cluster&#x27;
+	cluster_df.columns = [&#x27;user&#x27;, &#x27;cluster&#x27;]
+	return cluster_df </code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80ef-848e-cee6fe5d1484" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">combine_cluster_labels(user_ids, cluster_labels) </code></pre><figure id="29ab8fcf-a2cb-80d7-b5e3-f884d14ad804" class="image" style="text-align:left"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.22.35_AM.png"><img style="width:288px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.22.35_AM.png"/></a></figure><p id="29ab8fcf-a2cb-80ff-afae-c3cc84a321ac" class="">Now, each user finds its own cluster or we can say we have created many clusters of learning communities. Learners within each community share very similar learning interests.</p><p id="29ab8fcf-a2cb-806c-a900-f6b77dc67cbf" class="">
+</p><h1 id="29ab8fcf-a2cb-80cd-b5b5-d75c3e0351e5" class=""><strong>TASK: Apply PCA on user profile feature vectors to reduce dimensions</strong></h1><p id="29ab8fcf-a2cb-80d4-83af-e1325d963325" class="">In the previous step, we applied <code>KMeans</code> on the original user profile feature vectors which have 14 original features (the course genres).</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-804c-8ad2-e7fda5f00879" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">print(f&quot;There are {len(feature_names)} features for each user profile.&quot;)</code></pre><figure id="29ab8fcf-a2cb-80cc-861c-d0a1eeac6765" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.26.48_AM.png"><img style="width:553.9453125px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.26.48_AM.png"/></a></figure><p id="29ab8fcf-a2cb-802d-b8bf-df88d042e05c" class="">If we plot a covariance matrix of the user profile feature vectors with 14 features, we can observe that some features are actually correlated:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80ab-b030-e9e252d78006" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">sns.set_theme(style=&quot;white&quot;) 
+corr = features.cov() #correlation matrix
+mask = np.triu(np.ones_like(corr, dtype=bool)) #mask for the upper triange
+f, ax = plt.subplot(figsize=(11, 9)) #set up the matplotlib figure
+cmap = sns.diverging_palette(230, 20, as_cmap=True) #generate a customer diverging colormap 
+
+sns.heatmap(corr,
+						mask = mask,
+						cmap = cmap,
+						vmax = .3,
+						center=0,
+						square = True, 
+						linewidth = .5,
+						cbar_kws = {&quot;shrink&quot;: .5})
+plt.show()
+</code></pre><figure id="29ab8fcf-a2cb-8052-bac8-c7f5dc7a84be" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.31.11_AM.png"><img style="width:553.9921875px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_11.31.11_AM.png"/></a></figure><p id="29ab8fcf-a2cb-809d-a025-e699e23c06a1" class="">For example, the feature <code>MachineLearning</code> and the feature <code>DataScience</code> are correlated. Such covariances among features may indicate that we can apply PCA to find its main components (eigenvectors with max eigenvalues on the covariance matrix).</p><p id="29ab8fcf-a2cb-805f-9ae9-d13771d2b246" class="">If we only keep the independent main components, then we can reduce the dimensions of our user profile feature vectors.</p><p id="29ab8fcf-a2cb-8032-bca0-ccdf098c6036" class="">Now let&#x27;s apply the <code>PCA()</code> provided by <code>scikit-learn</code> to find the main components in user profile feature vectors and see if we can reduce its dimensions by only keeping the main components.</p><p id="29ab8fcf-a2cb-80e4-a435-d699c5883903" class="">Note that when calling the <code>PCA()</code> class, there is also an import argument called <code>n_components</code> which indicates how many components you want to keep in the PCA result. One way to find an optimized <code>n_components</code> is to do a grid search on a list of argument candidates (such as <code>range(1, 15)</code>) and calculate the ratio of the accumulated variance for each candidate.</p><p id="29ab8fcf-a2cb-80fe-8ff5-e566366b5838" class="">If the accumulated variances ratio of a candidate <code>n_components</code> is larger than a threshold, e.g., 90%, then we can say the transformed <code>n_components</code> could explain about 90% of variances of the original data variance and can be considered as an optimized components size.</p><p id="29ab8fcf-a2cb-8019-a288-c88eb8f9ef87" class=""><em>TODO: Find the optimized </em><em><code>n_components</code></em><em> for PCA</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8058-8cf7-fc2a12b75249" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all"># WRITE YOUR CODE HERE
+from sklearn.decomposition import PCA
+
+var = []
+
+for k in range(1, 15):
+        pca = PCA(n_components=k)
+        score_pca = (pca.fit(features))
+
+        var.append(score_pca.explained_variance_ratio_.sum())
+
+dataplot = pd.DataFrame({&#x27;n_component&#x27;: range(1,15), &#x27;var&#x27;:var})
+sns.barplot(data= dataplot, x = &#x27;n_component&#x27;, y = &#x27;var&#x27;)
+
+# - For a list of candidate `n_components` arguments such as 1 to 14, find out the minimal `n` that can explain accumulated 90% variances of previous data
+# - In the fitted PCA() model, you can find explained_variance_ratio_ and use the sum() function to add them to get the accumulated variance ratio
+</code></pre><figure id="29ab8fcf-a2cb-808b-a7ea-d8a3244838dc" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.06.21_PM.png"><img style="width:553.984375px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.06.21_PM.png"/></a></figure><p id="29ab8fcf-a2cb-80b6-978a-f876643a6a60" class="">
+</p><p id="29ab8fcf-a2cb-8095-a5df-cefe1ccdf624" class="">Once you found the optimized <code>n_component</code> argument value, you can apply PCA on the user profile feature vectors and reduce the 14 features into <code>n_component</code> features.</p><p id="29ab8fcf-a2cb-8085-b286-f27f9f08b2aa" class=""><em>TODO: Perform PCA to transform original user profile features</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-807e-ac04-e1e6f2525c1d" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all"># WRITE YOUR CODE HERE
+
+# - For a list of candidate `n_components` arguments such as 1 to 14, find out the minimal `n` that can explain accumulated 90% variances of previous data
+var = []
+
+for n_components in range(1, 15):
+        pca = PCA(n_components=n_components)
+        score_pca = (pca.fit(features))
+        transform_features = score_pca.transform(features)
+
+        var.append(score_pca.explained_variance_ratio_.sum())
+
+# - Merge the user ids and transformed features into a new dataframe
+pca_df= pd.DataFrame(data = transform_features)
+pd.merge(user_ids, pca_df , left_index=True, right_index=True)</code></pre><figure id="29ab8fcf-a2cb-8099-864e-ff94c4ee65c8" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.22.25_PM.png"><img style="width:553.984375px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.22.25_PM.png"/></a></figure><p id="29ab8fcf-a2cb-80c2-9c02-d48db6a2282c" class=""><strong>TASK: Perform k-means clustering on the PCA transformed feature vectors</strong></p><p id="29ab8fcf-a2cb-801e-acee-f540449f64ed" class="">Now, you have the PCA components of the original profile vectors. You can perform k-means on them again:</p><p id="29ab8fcf-a2cb-80e6-811b-ca065eefd7e5" class=""><em>TODO: Perform K-means on the PCA transformed features</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8054-8188-fbd0ed4eba0d" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">## WRITE YOUR CODE HERE
+
+## - Apply KMeans() on the PCA features
+km = KMeans(n_clusters=14, random_state=rs).fit(transform_features)
+cluster_labels2 = km.labels_
+cluster_labels2
+
+cluster_df = combine_cluster_labels(user_ids, cluster_labels2)
+## - Obtain the cluster label lists from model.labels_ attribute
+## - Assign each user a cluster label by combining user ids and cluster labels
+</code></pre><figure id="29ab8fcf-a2cb-80a1-a53f-cabfb0f32592" class="image" style="text-align:left"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.29.05_PM.png"><img style="width:336px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.29.05_PM.png"/></a></figure><p id="29ab8fcf-a2cb-80fc-98e1-c7a9178e3022" class="">Great, now all users find their learning interest groups, either based on their original or the PCA transformed user profile features.</p><p id="29ab8fcf-a2cb-808a-94b2-ee0b0709f15c" class="">When a user is in a group or a community, it is very likely that the user will be interested in the courses enrolled by other members within the same group</p><p id="29ab8fcf-a2cb-8067-a591-ff1ae785904c" class="">
+</p><h1 id="29ab8fcf-a2cb-8029-9fa6-d6eb5e29f71d" class=""><strong>TASK: Generate course recommendations based on the popular courses in the same cluster</strong></h1><p id="29ab8fcf-a2cb-8061-9dec-f5f817f1455b" class="">The Intuition of clustering-based course recommendation is very simple and can be illustrated via the following example:</p><p id="29ab8fcf-a2cb-8085-9e64-c650434b5f17" class="">Suppose a user has joined a machine learning group (via clustering algorithm). In the group, he/she finds that the top-3 courses enrolled by all other group members are <code>Machine Learning for Everyone</code>, <code>Machine Learning with Python</code>, <code>Machine Learning with Scikit-learn</code>. Since the user has already completed the <code>Machine Learning for Everyone</code> earlier, he/she decides to trust the group members&#x27; choices and enroll in other two unselected courses <code>Machine Learning with Python</code> and <code>Machine Learning with Scikit-learn</code>.</p><p id="29ab8fcf-a2cb-8063-b87f-c05c44531fe6" class="">In summary, the clustering-based recommender system first groups all users based on their profiles, and maintains a popular courses list for each group.</p><p id="29ab8fcf-a2cb-8082-8f84-f133e716058b" class="">For any group member who needs course recommendations, the algorithm recommends the unselected courses from the popular course lists.</p><p id="29ab8fcf-a2cb-80a3-a924-fba71923da48" class="">Next, suppose we have a set of test users, and we want to recommend new courses to them using a clustering-based recommender system:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80d3-a2ec-e65472dd318d" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">test_user_url = &quot;https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMSkillsNetwork-ML0321EN-Coursera/labs/v2/module_3/ratings.csv&quot;
+
+# reading the test use data 
+test_users_df = pd.read_csv(test_user_url)[[&#x27;user&#x27;, &#x27;item&#x27;]]
+
+test_users_df.head()</code></pre><figure id="29ab8fcf-a2cb-8036-ab28-db1383115816" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.52.06_PM.png"><img style="width:553.984375px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.52.06_PM.png"/></a></figure><p id="29ab8fcf-a2cb-808e-a40c-df868fe4618b" class="">The test users dataset has only two columns, the user id and the enrolled course id.</p><p id="29ab8fcf-a2cb-8098-8e3b-cee21cf1fb07" class="">For each user, let&#x27;s find its cluster label using the k-means results you have performed in previous steps, assuming it is named <code>cluster_df</code>.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8002-ad25-d72e38dd9837" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">test_users_labelled = pd.merge(test_users_df,cluster_df,  left_on = &#x27;user&#x27;, right_on = &#x27;user&#x27;)</code></pre><figure id="29ab8fcf-a2cb-8014-ba21-cf97aa5ac6c3" class="image" style="text-align:left"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.57.27_PM.png"><img style="width:384px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_12.57.27_PM.png"/></a></figure><p id="29ab8fcf-a2cb-8021-a8a9-c0cdc8fde464" class="">From the above dataframe, we know each user&#x27;s enrolled courses and its cluster index.</p><p id="29ab8fcf-a2cb-805f-be38-cd35af74c146" class="">If we use a <code>groupby</code> and <code>sum</code> aggregation, we can get the enrollments count for each course in each group, like the following code snippet:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-8075-839d-dbbe875bd798" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#extracting the &#x27;item&#x27; and &#x27;cluster&#x27; columns from the test_users_labelled DataFrame
+courses_cluster = test_users_lableed[[&#x27;item&#x27;, &#x27;cluster&#x27;]]
+
+#adding a new column &#x27;count&#x27; with a value of 1 for each row in the course_cluster_DataFrame
+courses_cluster[&#x27;count&#x27;] = [1] * len(courses_cluster) 
+
+#grouping the DataFrame by &#x27;cluster&#x27; and &#x27;item&#x27;, aggregating the &#x27;count&#x27; column with the sum function,
+#and resetting the index to make the result more readable
+courses_cluster_grouped = courses_cluster.groupby([&#x27;cluster&#x27;, &#x27;item&#x27;]).agg(enrollments=(&#x27;count&#x27;,&#x27;sum&#x27;)).reset_index()</code></pre><p id="29ab8fcf-a2cb-80d9-aaab-e93cf8e3adbd" class=""><em>TODO: For each test user, try to recommend any unseen courses based on the popular courses in his/her cluster. You may use an enrollment count threshold (such as larger than 10) to determine if it is a popular course in the cluster</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="29ab8fcf-a2cb-80a0-a933-df1f33ea0ddc" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">threshold = 10 
+
+pop_courses = courses_cluster_grouped[courses_cluster_grouped[&#x27;enrollments&#x27;] &gt; threshold]
+
+recommendations = []
+
+for user_id in test_user_labelled[&#x27;user&#x27;].unique():
+		#find the user&#x27;s clusters 
+		cluser_id = test_users_labelled.loc[test_user_labelled[&#x27;user&#x27;] == user_id, &#x27;cluster&#x27;].iloc[0]
+		enrolled = set(test_users_labeleed.loc[test_user_labelled[&#x27;user&#x27;] == user_id, &#x27;item&#x27;] #get the courses are already in
+		cluster_pop = set(pop_courses.loc[pop_courses[&#x27;cluster&#x27;] = cluster_id, &#x27;item&#x27;]) #popular courses in users clusters
+		
+		#recommend the one the user has not seen yet 
+		unseen_recommendations = list(cluster_pop - enrolled) 
+		
+		#add to the list 
+		recommendations.append({&#x27;user&#x27; :user_id, &#x27;recommended_courses&#x27;:unseen_recommendations})
+		
+recommendation_df = pd.DataFrame(recommendations)
+recommendation_df.head()
+		</code></pre><figure id="29ab8fcf-a2cb-801b-a2c1-e87ba64afe6a" class="image"><a href="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_1.43.04_PM.png"><img style="width:553.9765625px" src="Clustering%20based%20course%20recommender%20system%20LAB/Screenshot_2025-10-28_at_1.43.04_PM.png"/></a></figure><p id="29db8fcf-a2cb-807d-aaca-d5c469a40425" class="">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
