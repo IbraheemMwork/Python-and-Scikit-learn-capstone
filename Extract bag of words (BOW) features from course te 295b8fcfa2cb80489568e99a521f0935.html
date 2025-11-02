@@ -1,0 +1,797 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Extract bag of words (BOW) features from course textual content</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="295b8fcf-a2cb-8048-9568-e99a521f0935" class="page sans"><header><h1 class="page-title">Extract bag of words (BOW) features from course textual content</h1><p class="page-description"></p></header><div class="page-body"><p id="295b8fcf-a2cb-8043-81c2-d0c754d20462" class="">The main goal of recommender systems is to help users find items they potentially interested in. Depending on the recommendation tasks, an item can be a movie, a restaurant, or, in our case, an online course.</p><p id="295b8fcf-a2cb-802e-8cd2-dbb8b86d014e" class="">Machine learning algorithms cannot work on an item directly so we first need to extract features and represent the items mathematically, i.e., with a feature vector.</p><p id="295b8fcf-a2cb-805b-a066-eabe2d13fe08" class="">Many items are often described by text so they are associated with textual data, such as the titles and descriptions of a movie or course. Since machine learning algorithms can not process textual data directly, we need to transform the raw text into numeric feature vectors.</p><p id="295b8fcf-a2cb-808d-8334-c93fcedd06cd" class="">
+</p><figure id="295b8fcf-a2cb-80cb-8dee-e7006f3bfad8" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.15.24_AM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.15.24_AM.png"/></a></figure><p id="295b8fcf-a2cb-80ee-ba1d-e699098560dc" class="">In this lab, you will be learning to extract the bag of words (BoW) features from course titles and descriptions. The BoW feature is a simple but effective feature characterizing textual data and is widely used in many textual machine learning tasks.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80df-8b74-e574a15d7628" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">!pip install nltk ==3.6.7
+!pip install gensim
+!pip install scipy==1.10
+!pip install pandas
+!pip install nltk 
+!pip install matplotlib </code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80a6-b824-d180683002da" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import gensim 
+import pandas as pd 
+import nltk as nltk 
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from genism imort corpora
+
+%matplotlib inline </code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8010-a5b1-f65de4b5b91c" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">nltk.download(&#x27;punkt&#x27;)
+nltk.download(&#x27;stopwords&#x27;)
+nltk.download(&#x27;averaged_perceptron_tagger&#x27;)</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80ad-bece-cafa29e7aa2a" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">rs = 123</code></pre><p id="295b8fcf-a2cb-8018-a83a-f30c81001da6" class="">
+</p><h1 id="295b8fcf-a2cb-8071-b810-d5bc886b4980" class="">Bag of words (bow) features</h1><p id="295b8fcf-a2cb-806f-a615-fe99002ecf52" class="">BoW features are essentially the counts or frequencies of each word that appears in a text (string). Let&#x27;s illustrate it with some simple examples.</p><p id="295b8fcf-a2cb-80c8-a22e-dcc8b293067b" class="">Suppose we have two course descriptions as follows:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80c3-a47b-c91436728e3d" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">course1 = &quot;this is an introduction data science course which introduces data science to beginners&quot;</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80d0-bab5-f625f3df7402" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">course2 = &quot;machine learning for beginners&quot;</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8063-bcd0-f6c6b79ee06c" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">courses = [course1, course2]
+courses</code></pre><p id="295b8fcf-a2cb-80ac-b4f0-e0fe203ed62e" class="">The first step is to split the two strings into words (tokens). A token in the text processing context means the smallest unit of text such as a word, a symbol/punctuation, or a phrase, etc. The process to transform a string into a collection of tokens is called <code>tokenization</code>.</p><p id="295b8fcf-a2cb-80c5-981e-d15f927359eb" class="">One common way to do <code>tokenization</code> is to use the Python built-in <code>split()</code> method of the <code>str</code> class. However, in this lab, we want to leverage the <code>nltk</code> (Natural Language Toolkit) package, which is probably the most commonly used package to process text or natural language.</p><p id="295b8fcf-a2cb-80c4-909e-e665f0d64a45" class="">More specifically, we will use the <code>word_tokenize()</code> method on the content of course (string):</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8096-9319-fe53f133060c" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#tokenize the 2 courses
+tokenized_courses = [word_tokenize(course) for course in courses]</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-805b-b944-cb022c0593c6" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">tokenized_courses</code></pre><figure id="295b8fcf-a2cb-802a-b8dc-d354cdeea1bd" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.23.00_AM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.23.00_AM.png"/></a></figure><p id="295b8fcf-a2cb-80ed-a0af-eff23875b1c4" class="">As you can see from the cell output, two courses have been tokenized and turned into two token arrays.</p><p id="295b8fcf-a2cb-8055-9298-c7f7133e2fee" class="">Next, we want to create a token dictionary to index all tokens. Basically, we want to assign a key/index for each token. One way to index tokens is to use the <code>gensim</code> package which is another popular package for processing textual data:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80f6-9098-f36699e9f2b6" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#create a dict for the tokens
+tokens_dict = gensim.corpora.Dictionary(tokenized_courses)</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80c6-b212-d7c823ad20c8" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">print(tokens_dict.token2id)</code></pre><figure id="295b8fcf-a2cb-8070-8480-db4e223ec863" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.24.16_AM.png"><img style="width:553.9765625px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.24.16_AM.png"/></a></figure><p id="295b8fcf-a2cb-80e4-9e4d-e11f7f27ce08" class="">With the token dictionary, we can easily count each token in the two example courses and output two BoW feature vectors. However, more conveniently, the <code>gensim</code> package provides us a <code>doc2bow</code> method to generate BoW features out-of-box.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8054-ad6a-e948bd076057" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#generate BoW features for each course
+courses_bow = [tokens_dict.doc2bow(course) for course in tokenized_courses]</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80b8-97fa-c3bf4bcef461" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">courses_bow</code></pre><figure id="295b8fcf-a2cb-8017-9560-d91c80214d6f" class="image" style="text-align:left"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.25.17_AM.png"><img style="width:336px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.25.17_AM.png"/></a></figure><p id="295b8fcf-a2cb-80c7-bccf-c9b2383e7c7f" class="">It outputs two BoW arrays where each element is a tuple, e.g., (0, 1) and (7, 2). The first element of the tuple is the token ID and the second element is its count. So</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-807a-acef-f5af554cee57" class="code code-wrap"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">(0, 1)</code></pre><p id="295b8fcf-a2cb-8029-8aef-f3ef4247aebd" class="">means</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8055-a888-ecb3094e2114" class="code code-wrap"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">(``an``, 1)</code></pre><p id="295b8fcf-a2cb-8063-9e91-fa220751fa3d" class="">and</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-806c-8207-ef8b7367a030" class="code code-wrap"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">(7, 2)</code></pre><p id="295b8fcf-a2cb-8021-aa44-fd732463c9dd" class="">means</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-805b-b740-df77324e3cb0" class="code code-wrap"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">(``science``, 2)</code></pre><p id="295b8fcf-a2cb-80f5-ad12-c2957d170050" class=""><br/></p><p id="295b8fcf-a2cb-80bd-81fe-c01b50fdb52a" class="">We can use the following code snippet to print each token and its count:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8062-8e47-eb1ccd9dd312" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#enumerate through each course and its bag-of-words representation
+for course_idx, course_bow in enumerate(courses_bow):
+	#print the index of the current course and a label 
+	print(f&quot;bag of words for course {course_idx}:&quot;)
+	
+	#for each token index, print its bow value (word count)
+	for token_index, token_bow in course_bow:
+		#retrieve the token from teh tokens dictionary based on its index
+		token = tokens_dict.get(token_index)
+		#print the token and its bag-of-words value
+		print(f&quot;--Token &#x27;{token}&#x27;, Count:{token_bow}&quot;)</code></pre><figure id="295b8fcf-a2cb-80bb-8811-fbbfc9a24c42" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.46.59_AM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.46.59_AM.png"/></a></figure><p id="295b8fcf-a2cb-8077-ad07-e02defc014b1" class="">If we turn to the long list into a horizontal feature vectors, we can see the two courses become two numerical feature vectors:</p><figure id="295b8fcf-a2cb-808e-8197-c3465ac840c8" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.47.45_AM.png"><img style="width:553.984375px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.47.45_AM.png"/></a></figure><p id="295b8fcf-a2cb-8092-aa33-f29480faf656" class="">
+</p><h1 id="295b8fcf-a2cb-80ba-bda5-da35e79cb6d0" class="">BoW dimensionality reduction </h1><p id="295b8fcf-a2cb-806c-a8e7-cd2419933907" class="">A document may contain tens of thousands of words which makes the dimension of the BoW feature vector huge. To reduce the dimensionality, one common way is to filter the relatively meaningless tokens such as stop words or sometimes add position and adjective words.</p><p id="295b8fcf-a2cb-809e-b9ad-f3885a7f407b" class="">
+</p><p id="295b8fcf-a2cb-80db-a18f-dc6264f3c0ac" class="">we can use the english stop words provided in nl1k:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80a4-a204-fe014759e52f" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">stop_words = set(stopwords.words(&#x27;english&#x27;))</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80a2-8507-f98e03800cb3" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">stop_words</code></pre><figure id="295b8fcf-a2cb-807a-a8c1-ec6b8814085f" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.50.15_AM.png"><img style="width:448px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.50.15_AM.png"/></a></figure><p id="295b8fcf-a2cb-8082-86eb-e668ac3a1c3c" class="">Then we can filter those English stop words from the tokens in course1:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8085-9725-cd2f09fc0687" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">#tokens in course 1
+tokenized_courses[0]</code></pre><figure id="295b8fcf-a2cb-8062-96ab-d0fc1a65920c" class="image" style="text-align:left"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.50.52_AM.png"><img style="width:336px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.50.52_AM.png"/></a></figure><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8030-bdda-ce6bc483cd8d" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">processed_tokens = [w for w in tokenized_courses[0] if not w.lower() in stop_words]</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80c1-9275-ee9aca62db16" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">processed_tokens</code></pre><figure id="295b8fcf-a2cb-80b9-b790-f75e70cc93b4" class="image" style="text-align:left"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.51.41_AM.png"><img style="width:288px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.51.41_AM.png"/></a></figure><p id="295b8fcf-a2cb-8035-aca2-cc40c7f529fe" class="">You can see the number of tokens for <code>course1</code> has been reduced.</p><p id="295b8fcf-a2cb-803b-9d5d-fe3e0dd0e168" class="">Another common way is to only keep nouns in the text. We can use the <code>nltk.pos_tag()</code> method to analyze the part of speech (POS) and annotate each word.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80d5-8c6c-fcc3104c4569" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">tags = nltk.pos_tag(tokenized_courses[0])
+tags</code></pre><figure id="295b8fcf-a2cb-806d-9f1e-ffed1dd377c0" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.53.45_AM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.53.45_AM.png"/></a></figure><p id="295b8fcf-a2cb-80a8-84fd-eb6daa0927dc" class="">
+</p><p id="295b8fcf-a2cb-80ff-a484-c0ffdf45df31" class="">
+</p><h1 id="295b8fcf-a2cb-801e-997c-d89fabdca733" class=""><strong>TASK: Extract BoW features for course textual content and build a dataset</strong></h1><p id="295b8fcf-a2cb-8046-9bf9-d9dbc5ab02cb" class="">By now you have learned what a BoW feature is, so let&#x27;s start extracting BoW features from some real course textual content.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-800d-ac39-e81d307b9291" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">course_url =  &quot;https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-ML321EN-SkillsNetwork/labs/datasets/course_processed.csv&quot;
+course_content_df = pd.read_csv(course_url) </code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80df-8978-d913bd7ee896" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">course_content_df.iloc[0, :]</code></pre><figure id="295b8fcf-a2cb-804a-8a5a-d175361ffbb7" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.55.14_AM.png"><img style="width:554px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.55.14_AM.png"/></a></figure><p id="295b8fcf-a2cb-80ef-98fb-c88f26db72ec" class="">The course content dataset has three columns <code>COURSE_ID</code>, <code>TITLE</code>, and <code>DESCRIPTION</code>. <code>TITLE</code> and <code>DESCRIPTION</code> are all text upon which we want to extract BoW features.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8024-bdf6-fa9d0314107e" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all"># merging title and description columns 
+course_content_df[&#x27;course_texts&#x27;] = course_content_df[[&#x27;TITLE&#x27;, &#x27;DESCRIPTION&#x27;]].agg(&#x27; &#x27;.join, axis = 1) 
+course_content_df = course_content_df.reset_index()
+course_content_df[&#x27;index&#x27;] = course_content_df.index </code></pre><figure id="295b8fcf-a2cb-808e-a2ba-d3e4e7ed4c00" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.58.41_AM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_11.58.41_AM.png"/></a></figure><p id="295b8fcf-a2cb-8010-b4d6-db547cbbe6b7" class="">
+</p><p id="295b8fcf-a2cb-809f-b58a-e0bdd82c363c" class="">We have used the <code>tokenize_course()</code> method to tokenize the course content:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80b1-a46a-f3fb2dbbb222" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">def tokenize_course(course, keep_only_nouns = True):
+		#get english stop words
+		stop_words = set(stopwords.words(&#x27;english&#x27;))
+		#tokenize the course text 
+		word_tokens = work_tokenize(course)
+		#remove English stop words and numbers 
+		word_tokens = [w for w in work_tokens if (not w.lower() in stop_words) and (not w.isnumeric())]
+		
+		
+		#only keep nouns 
+		if keep_only_nouns:
+			#define a filter list of non-noun POS tags
+			filter_list = [[&#x27;WDT&#x27;, &#x27;WP&#x27;, &#x27;WRB&#x27;, &#x27;FW&#x27;, &#x27;IN&#x27;, &#x27;JJR&#x27;, &#x27;JJS&#x27;, &#x27;MD&#x27;, &#x27;PDT&#x27;, &#x27;POS&#x27;, &#x27;PRP&#x27;, &#x27;RB&#x27;, &#x27;RBR&#x27;, &#x27;RBS&#x27;,
+                       &#x27;RP&#x27;]
+      #tag the word tokens with POS tags
+      tags = nltk.pos_tag(word_tokens)
+      #filter out non-nouns based on POS tags 
+      word_tokens = [word for word, pos in tags if pos not in filter_list]
+      
+	  return word_tokens</code></pre><p id="295b8fcf-a2cb-8019-aec8-c24bcd2b8daf" class="">
+</p><p id="295b8fcf-a2cb-804e-be18-d3fef0378c5c" class="">Let&#x27;s try it on the first course.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80cd-8209-f04c963a03cf" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a_course = course_content_df.iloc[0,:][&#x27;course_texts&#x27;]
+a_course</code></pre><figure id="295b8fcf-a2cb-801f-a470-f7eaaf538e95" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_12.05.03_PM.png"><img style="width:553.984375px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_12.05.03_PM.png"/></a></figure><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-80c2-9dee-e925c20f383c" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">tokenize_course(a_course)</code></pre><figure id="295b8fcf-a2cb-8009-b9b0-f66ce7962494" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_12.06.02_PM.png"><img style="width:553.9921875px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_12.06.02_PM.png"/></a></figure><p id="295b8fcf-a2cb-80d5-ac13-c98765b1b818" class="">
+</p><p id="295b8fcf-a2cb-807e-815b-dbdd9b1c11ed" class="">
+</p><h1 id="295b8fcf-a2cb-808f-b852-fbebd145cd8b" class="">DIY part - put BOW in dataframe</h1><p id="295b8fcf-a2cb-80f8-951c-cfd6d8d7c150" class="">Next, you will need to write some code snippets to generate the BoW features for each course. Let&#x27;s start by tokenzing all courses in the <code>courses_df</code>:</p><p id="295b8fcf-a2cb-808a-bd6d-ce69f980d193" class=""><em>TODO: Use provided tokenize_course() method to tokenize all courses in courses_df[&#x27;course_texts&#x27;].</em></p><p id="295b8fcf-a2cb-8063-b278-d90a60008b97" class="">
+</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-808d-a082-d5a16969c093" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">courses_df[&#x27;course_texts&#x27;] = course_content_df[&#x27;course_texts&#x27;].apply(lambda x: tokenize_course(x, True))
+processed_tokens1 = course_content_df[&#x27;course_texts&#x27;].apply(lambda x: tokenize_course(x_True))</code></pre><p id="295b8fcf-a2cb-801e-b4e5-e74aa5e999d5" class="">we do it twice so it gets stored in [[]] for the next part. Genism wont take it then. </p><p id="295b8fcf-a2cb-8053-968c-e303fd1cd23c" class="">Then we need to create a token dictionary <code>tokens_dict</code></p><p id="295b8fcf-a2cb-8094-bc88-e993c50e82cb" class=""><em>TODO: Use gensim.corpora.Dictionary(tokenized_courses) to create a token dictionary.</em></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8081-b637-fb0b4e1aacf6" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">tokens_dict = gensim.corpa.Dictionary(processed_tokens1)
+print(tokens_dict.token2id)</code></pre><figure id="295b8fcf-a2cb-8086-b7bb-c58ee7034acc" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.24.56_PM.png"><img style="width:553.984375px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.24.56_PM.png"/></a></figure><p id="295b8fcf-a2cb-80c2-8a95-cb2562967af2" class="">Then we can use <code>doc2bow()</code> method to generate BoW features for each tokenized course.</p><p id="295b8fcf-a2cb-80a9-9e66-fe1a23d473ab" class=""><em>TODO: Use tokens_dict.doc2bow() to generate BoW features for each tokenized course.</em></p><p id="295b8fcf-a2cb-8025-8969-c09c08fb4927" class="">this will convert it to tuples code </p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8027-b9c8-fac54d8e9c0a" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">courses_bow = [tokens_dict.doc2bow(course) for course in tokenized_courses)
+#convert each tokendict for each text in tokenized_text</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-802a-9dc3-c212e51b788a" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">courses_bow</code></pre><figure id="295b8fcf-a2cb-8030-9ec8-ea07bf0701d7" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.26.10_PM.png"><img style="width:553.9609375px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.26.10_PM.png"/></a></figure><p id="295b8fcf-a2cb-80c2-856c-eb416418579d" class="">Lastly, you need to append the BoW features for each course into a new BoW dataframe. The new dataframe needs to include the following columns (you may include other relevant columns as well):</p><ul id="295b8fcf-a2cb-808f-883f-fb80c5425712" class="bulleted-list"><li style="list-style-type:disc">&#x27;doc_index&#x27;: the course index starting from 0</li></ul><ul id="295b8fcf-a2cb-805f-b227-f5cf9285128d" class="bulleted-list"><li style="list-style-type:disc">&#x27;doc_id&#x27;: the actual course id such as <code>ML0201EN</code></li></ul><ul id="295b8fcf-a2cb-8017-acbd-cfcdde46bbcf" class="bulleted-list"><li style="list-style-type:disc">&#x27;token&#x27;: the tokens for each course</li></ul><ul id="295b8fcf-a2cb-8044-b07d-edde88ca5b4f" class="bulleted-list"><li style="list-style-type:disc">&#x27;bow&#x27;: the bow value for each token</li></ul><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="295b8fcf-a2cb-8088-b1eb-f0800ce38a5e" class="code code-wrap"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">doc_indices = [] #index 
+token_ids = []
+token = [] #text
+bow_values = [] #count 
+
+# loop 
+#for each index and doc_bow&quot;random word&quot; index the (courses_bow)
+for doc_index, doc_bow in enumerate(courses_bow):
+	#for each token, count how many words in the &quot;random word&quot;
+	for token_id, count in doc_bow: 
+			doc_indices.append(doc_index)
+			token_ids.append(token_id)
+			token.append(token_dict[token_id])
+			bow_values.append(count)
+
+#create the DataFrame
+bow_df = pd.DataFrame({
+		&quot;doc_index&quot;: doc_indices,
+		&quot;token_id&quot;: token_ids,
+		&quot;token&quot;: tokens,
+		&quot;count&quot;: bow_values
+})
+
+bow_df.head()</code></pre><figure id="295b8fcf-a2cb-80f4-a867-cb1f6ccd76b8" class="image"><a href="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.33.56_PM.png"><img style="width:553.984375px" src="Extract%20bag%20of%20words%20(BOW)%20features%20from%20course%20te/Screenshot_2025-10-23_at_1.33.56_PM.png"/></a></figure><p id="295b8fcf-a2cb-8020-b15a-c167e6f51fbc" class=""><strong>Other popular textual features</strong></p><p id="295b8fcf-a2cb-80f0-9817-da5fa45e89fc" class="">In addition to the basic token BoW feature, there are two other types of widely used textual features. If you are interested, you may explore them yourself to learn how to extract them from the course textual content:</p><ul id="295b8fcf-a2cb-809a-af2f-fe91d4b1686c" class="bulleted-list"><li style="list-style-type:disc"><strong>tf-idf</strong>: tf-idf refers to Term Frequency–Inverse Document Frequency. Similar to BoW, the tf-idf also counts the word frequencies in each document. Furthermore, tf-idf will offset the number of documents in the corpus that contain the word in order to adjust for the fact that some words appear more frequently in general. The higher the tf-idf normally means the greater the importance the word/token is.</li></ul><ul id="295b8fcf-a2cb-801e-935f-cc21720edb3f" class="bulleted-list"><li style="list-style-type:disc"><strong>Text embedding vector</strong>. Embedding means projecting an object into a latent feature space. We normally employ neural networks or deep neural networks to learn the latent features of a textual object such as a word, a sentence, or the entire document. The learned latent feature vectors will be used to represent the original textual entities.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
